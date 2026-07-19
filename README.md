@@ -1,7 +1,7 @@
 # [WIP] whats
 A CLI Utility that breaks down a command's flags
 
-# Usage
+# usage
 add a `whats` in the front of any command
 ```
 whats $ whats ls -lah
@@ -12,7 +12,7 @@ whats $
 ```
 
 # how it works
-Using a complex regex pattern, which matches the common format of flags in man pages and --help outputs:
+Regex pattern matches the common format of flags in man pages and --help outputs:
 
 ```
        -I, --ignore=PATTERN
@@ -22,3 +22,11 @@ Which includes the flag line starting with a indent followed by the first flag s
 
 # installation
 `go install https://github.com/iamkaran/whats@latest`
+
+# roadmap
+- [X] Regex pattern for matching flag lines
+- [X] Parse man page of binary from argument
+- [ ] Combined flags (eg: -la)
+- [ ] Subcommand flags
+- [ ] Help output as a fallback
+- [ ] De-duplicate flags in arguments
