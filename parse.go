@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,7 +17,24 @@ var (
 	flagCluster = regexp.MustCompile(`,\s+|\s+\|\s+`)
 
 	overstrike = regexp.MustCompile(`.\x08`)
+
+	isDump bool
 )
+
+func init() {
+	flag.BoolVar(&isDump, "dump", false, "dump the entire parsed slice of entries")
+	flag.Usage = func() {
+		_, err := fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
+		if err != nil {
+			panic(err)
+		}
+		_, err = fmt.Fprintln(flag.CommandLine.Output(), "  <cmd> <flags>\n    	Print the explanation of command line flags")
+		if err != nil {
+			panic(err)
+		}
+		flag.PrintDefaults()
+	}
+}
 
 // entry is a flag and its description
 type entry struct {
@@ -24,50 +42,60 @@ type entry struct {
 	desc  string
 }
 
-// checkDump returns the arguments with removed --dump flag if there is one and a bool indicating if the user wants to dump all entries
-func checkDump(args []string) ([]string, bool) {
-	if len(args) >= 1 && args[0] == "--dump" {
-		return os.Args[2:], true
-	}
-	return args, false
-}
-
-func main() {
-	if len(os.Args) <= 2 {
-		fmt.Fprintf(os.Stderr, "usage: whats <cmd> <flags>\n")
-		os.Exit(1)
-	}
-
-	args, dump := checkDump(os.Args[1:])
-
+// parseEntries returns a slice of entry
+func parseEntries(args []string) []entry {
 	text, err := render(args[0])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "no man page found\n")
 		os.Exit(1)
 	}
+
 	entries := parse(text)
 	if len(entries) == 0 {
 		fmt.Fprintf(os.Stderr, "no entries found\n")
 		os.Exit(1)
 	}
 
-	if dump == true {
-		for _, en := range entries {
-			fmt.Printf("%s    %s\n", strings.Join(en.flags, ", "), en.desc)
-		}
-		os.Exit(0)
+	if isDump {
+		return entries
 	}
-	result := []*entry{}
+
+	result := []entry{}
 	for _, arg := range args {
-		entry := findEntry(entries, flagName(arg))
-		if entry != nil {
-			result = append(result, entry)
+		matchedEntry := findEntry(entries, flagName(arg))
+		if matchedEntry == nil && strings.Count(arg, "-") == 1 && len(arg) > 2 {
+			combinedFlags := strings.TrimPrefix(arg, "-")
+			fannedOut := strings.Split(combinedFlags, "")
+			for _, fArg := range fannedOut {
+				matchedEntry := findEntry(entries, "-"+flagName(fArg))
+				if matchedEntry != nil {
+					result = append(result, *matchedEntry)
+				}
+			}
+		} else {
+			if matchedEntry != nil {
+				result = append(result, *matchedEntry)
+			}
 		}
 	}
 	if len(result) == 0 {
 		fmt.Fprintf(os.Stderr, "no flag matched\n")
 		os.Exit(1)
 	}
+	return result
+}
+
+func main() {
+	flag.Parse()
+
+	if flag.NArg() == 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	args := flag.Args()
+
+	result := parseEntries(args)
 	for _, en := range result {
 		fmt.Printf("%s    %s\n", strings.Join(en.flags, ", "), en.desc)
 	}
