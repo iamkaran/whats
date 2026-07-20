@@ -28,7 +28,7 @@ go install github.com/iamkaran/whats@latest
 # roadmap
 - [X] Regex pattern for matching flag lines
 - [X] Parse man page of binary from argument
-- [ ] Combined flags (eg: -la)
+- [X] Combined flags (eg: -la)
 - [ ] Subcommand flags
 - [ ] Help output as a fallback
 - [ ] De-duplicate flags in arguments
