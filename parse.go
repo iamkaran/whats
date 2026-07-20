@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+const maxLen = 80
+
 // flagLine matches a flag entry: indented line starting with -x or
 // --long, with
 // the description either after 2+ spaces on the same line or on following lines.
@@ -94,8 +96,17 @@ func main() {
 
 	args := flag.Args()
 	result := parseEntries(args)
-	for _, en := range result {
-		fmt.Printf("%s    %s\n", strings.Join(en.flags, ", "), en.desc)
+	w := 0
+	joined := make([]string, len(result))
+	for i, en := range result {
+		joined[i] = strings.Join(en.flags, ", ")
+		if n := len([]rune(joined[i])); n > w {
+			w = n
+		}
+	}
+	for i, en := range result {
+		pad := strings.Repeat(" ", w-len([]rune(joined[i])))
+		fmt.Printf("%s%s    %s\n", strings.Join(en.flags, ", "), pad, getSummary(en.desc))
 	}
 }
 
@@ -206,4 +217,24 @@ func flagName(f string) string {
 		f = f[:i]
 	}
 	return f
+}
+
+// getSummary returns the first line from the entire description block
+func getSummary(desc string) string {
+	const term = ".:)]}!?"
+	for _, ln := range strings.Split(desc, "\n") {
+		ln = strings.TrimSpace(ln)
+		if ln == "" {
+			continue
+		}
+		r := []rune(ln)
+		if !strings.ContainsRune(term, r[len(r)-1]) {
+			ln += "..."
+		}
+		if r := []rune(ln); len(r) > maxLen {
+			ln = string(r[:maxLen-1]) + "…"
+		}
+		return ln
+	}
+	return ""
 }
