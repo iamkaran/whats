@@ -63,7 +63,7 @@ func parseEntries(args []string) []entry {
 	result := []entry{}
 	for _, arg := range args {
 		matchedEntry := findEntry(entries, flagName(arg))
-		if matchedEntry == nil && strings.Count(arg, "-") == 1 && len(arg) > 2 {
+		if matchedEntry == nil && strings.HasPrefix(arg, "-") && !strings.HasPrefix(arg, "--") && len(arg) > 2 {
 			combinedFlags := strings.TrimPrefix(arg, "-")
 			fannedOut := strings.Split(combinedFlags, "")
 			for _, fArg := range fannedOut {
@@ -87,14 +87,12 @@ func parseEntries(args []string) []entry {
 
 func main() {
 	flag.Parse()
-
 	if flag.NArg() == 0 {
 		flag.Usage()
 		os.Exit(1)
 	}
 
 	args := flag.Args()
-
 	result := parseEntries(args)
 	for _, en := range result {
 		fmt.Printf("%s    %s\n", strings.Join(en.flags, ", "), en.desc)
