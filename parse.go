@@ -12,7 +12,7 @@ import (
 // --long, with
 // the description either after 2+ spaces on the same line or on following lines.
 var (
-	flagLine    = regexp.MustCompile(`^( {1,12})(-.*?)(?:\s{2,}(.*))?$`)
+	flagLine    = regexp.MustCompile(`^( {1,8})(-.*?)(?:\s{2,}(.*))?$`)
 	flagCluster = regexp.MustCompile(`,\s+|\s+\|\s+`)
 
 	overstrike = regexp.MustCompile(`.\x08`)
@@ -24,12 +24,23 @@ type entry struct {
 	desc  string
 }
 
+// checkDump returns the arguments with removed --dump flag if there is one and a bool indicating if the user wants to dump all entries
+func checkDump(args []string) ([]string, bool) {
+	if len(args) >= 1 && args[0] == "--dump" {
+		return os.Args[2:], true
+	}
+	return args, false
+}
+
 func main() {
 	if len(os.Args) <= 2 {
 		fmt.Fprintf(os.Stderr, "usage: whats <cmd> <flags>\n")
 		os.Exit(1)
 	}
-	text, err := render(os.Args[1])
+
+	args, dump := checkDump(os.Args[1:])
+
+	text, err := render(args[0])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "no man page found\n")
 		os.Exit(1)
@@ -39,10 +50,16 @@ func main() {
 		fmt.Fprintf(os.Stderr, "no entries found\n")
 		os.Exit(1)
 	}
-	args := os.Args[2:]
+
+	if dump == true {
+		for _, en := range entries {
+			fmt.Printf("%s    %s\n", strings.Join(en.flags, ", "), en.desc)
+		}
+		os.Exit(0)
+	}
 	result := []*entry{}
 	for _, arg := range args {
-		entry := findEntry(entries, arg)
+		entry := findEntry(entries, flagName(arg))
 		if entry != nil {
 			result = append(result, entry)
 		}

@@ -8,14 +8,14 @@ import (
 func TestFlagLine(t *testing.T) {
 	tests := []struct {
 		name      string
-		lookup    string // the flag being queried, as in `whats <cmd> <flag>`
+		lookUp    string // the flag being queried, as in `whats <cmd> <flag>`
 		rawBlock  string
 		wantFlags []string
 		wantDesc  string
 	}{
 		{
 			name:   "ls --all: same-line description",
-			lookup: "-a",
+			lookUp: "-a",
 			rawBlock: `       -a, --all[=WHEN]        do not ignore entries starting with .
        -A, --almost-all       do not list implied . and ..
        -B, --ignore-backups   do not list entries ending with ~`,
@@ -24,7 +24,7 @@ func TestFlagLine(t *testing.T) {
 		},
 		{
 			name:   "sort --output=FILE: indented multi-line description",
-			lookup: "-o",
+			lookUp: "-o",
 			rawBlock: `       -o, --output=FILE
                Write output to FILE instead of standard output.
                Existing files are truncated before writing.
@@ -39,7 +39,7 @@ Use "-" to write to stdout.`,
 		},
 		{
 			name:   "grep --color[=WHEN]: description with blank line and value list",
-			lookup: "--color",
+			lookUp: "--color",
 			rawBlock: `       --color[=WHEN]
                Colorize the output.
 
@@ -60,7 +60,7 @@ WHEN may be:
 		},
 		{
 			name:   "grep --quiet: four synonym flags",
-			lookup: "-q",
+			lookUp: "-q",
 			rawBlock: `       -q, -s, --quiet, --silent
                Suppress all normal output.
                Errors are still reported.
@@ -73,7 +73,7 @@ Errors are still reported.`,
 		},
 		{
 			name:   "gcc --include=DIR: space-separated arg on the short flag",
-			lookup: "-I",
+			lookUp: "-I",
 			rawBlock: `       -I DIR, --include=DIR
                Add DIR to the include search path.
 
@@ -90,7 +90,7 @@ Directories are searched in the order given.`,
 		},
 		{
 			name:   "cp --backup[=CONTROL]: same-line description plus indented list",
-			lookup: "--backup",
+			lookUp: "--backup",
 			rawBlock: `       --backup[=CONTROL]        make a backup of each existing destination file
 
                CONTROL may be one of:
@@ -112,7 +112,7 @@ CONTROL may be one of:
 		},
 		{
 			name:   "argparse --output FILE: space-separated args on both flags",
-			lookup: "-o",
+			lookUp: "-o",
 			rawBlock: `  -o FILE, --output FILE
                         write output to FILE
 
@@ -122,8 +122,8 @@ CONTROL may be one of:
 			wantDesc:  "write output to FILE",
 		},
 		{
-			name:   "pflag --port: lookup skips earlier flags in the block",
-			lookup: "-p",
+			name:   "pflag --port: lookUp skips earlier flags in the block",
+			lookUp: "-p",
 			rawBlock: `Flags:
       --config string      path to config file
   -p, --port int           TCP port to listen on
@@ -134,7 +134,7 @@ CONTROL may be one of:
 		},
 		{
 			name:   "argparse --log-level: braced choices as argument",
-			lookup: "--log-level",
+			lookUp: "--log-level",
 			rawBlock: `Options:
   --log-level {debug,info,warning,error}
                         logging verbosity
@@ -149,7 +149,7 @@ CONTROL may be one of:
 		},
 		{
 			name:   "make --jobs=N: same-line description with continuation lines",
-			lookup: "-j",
+			lookUp: "-j",
 			rawBlock: `       -j, --jobs=N         Run up to N jobs simultaneously.
                             Defaults to the number of online CPUs.
                             Values less than one are rejected.
@@ -162,7 +162,7 @@ Values less than one are rejected.`,
 		},
 		{
 			name:   "curl --header: flag-like examples inside the description",
-			lookup: "-H",
+			lookUp: "-H",
 			rawBlock: `       -H, --header HEADER
                Add HEADER to every HTTP request.
 
@@ -181,7 +181,7 @@ Example:
 		},
 		{
 			name:   "--dry-run: quoted flags inside the description",
-			lookup: "--dry-run",
+			lookUp: "--dry-run",
 			rawBlock: `       --dry-run
                Does not execute commands.
                For example, "-f" and "--force" are ignored
@@ -196,7 +196,7 @@ when running in dry-run mode.`,
 		},
 		{
 			name:   "--verify: bulleted list in the description",
-			lookup: "--verify",
+			lookUp: "--verify",
 			rawBlock: `       --verify
                Verification stages:
                  - Parse the configuration
@@ -215,7 +215,7 @@ Returns non-zero on failure.`,
 		},
 		{
 			name:   "--example: command invocations inside the description",
-			lookup: "--example",
+			lookUp: "--example",
 			rawBlock: `       --example
                Example:
                  mytool -a --output=file
@@ -230,7 +230,7 @@ Returns non-zero on failure.`,
 		},
 		{
 			name:   "curl --progress-bar: '#' as short flag",
-			lookup: "-#",
+			lookUp: "-#",
 			rawBlock: `       -#, --progress-bar
                Make curl display transfer progress as a simple progress bar
                instead of the standard, more informational, meter.
@@ -243,7 +243,7 @@ instead of the standard, more informational, meter.`,
 		},
 		{
 			name:   "grep -NUM: numeric context flag with same-line description",
-			lookup: "-NUM",
+			lookUp: "-NUM",
 			rawBlock: `       -NUM   Same as --context=NUM.
 
        -A NUM, --after-context=NUM
@@ -253,7 +253,7 @@ instead of the standard, more informational, meter.`,
 		},
 		{
 			name:   "tail --lines=[+]NUM: bracketed sign inside the argument",
-			lookup: "-n",
+			lookUp: "-n",
 			rawBlock: `       -n, --lines=[+]NUM
                output the last NUM lines, instead of the last 10;
                or use -n +NUM to output starting with line NUM
@@ -266,7 +266,7 @@ or use -n +NUM to output starting with line NUM`,
 		},
 		{
 			name:   "grep --colour: alias long flags each carrying [=WHEN]",
-			lookup: "--color",
+			lookUp: "--color",
 			rawBlock: `       --color[=WHEN], --colour[=WHEN]
                Surround the matched strings with escape sequences to display
                them in color on the terminal.
@@ -279,7 +279,7 @@ them in color on the terminal.`,
 		},
 		{
 			name:   "rsync --archive: long flag listed before short flag",
-			lookup: "--archive",
+			lookUp: "--archive",
 			rawBlock: `        --archive, -a            archive mode; equals -rlptgoD (no -H,-A,-X)
         --verbose, -v            increase verbosity`,
 			wantFlags: []string{"--archive", "-a"},
@@ -287,7 +287,7 @@ them in color on the terminal.`,
 		},
 		{
 			name:   "-V | --version: pipe-separated flags",
-			lookup: "-V",
+			lookUp: "-V",
 			rawBlock: `       -V | --version
               Print version and exit.
 
@@ -298,7 +298,7 @@ them in color on the terminal.`,
 		},
 		{
 			name:   "git --no-decorate: stacked flag lines sharing one description",
-			lookup: "--no-decorate",
+			lookUp: "--no-decorate",
 			rawBlock: `       --no-decorate
        --decorate[=short|full|auto|no]
                Print out the ref names of any commits that are shown. If short is
@@ -315,7 +315,7 @@ refs/remotes/ will not be printed.`,
 		},
 		{
 			name:   "git --decorate: pipe-separated values inside the argument",
-			lookup: "--decorate",
+			lookUp: "--decorate",
 			rawBlock: `       --no-decorate
        --decorate[=short|full|auto|no]
                Print out the ref names of any commits that are shown.
@@ -327,7 +327,7 @@ refs/remotes/ will not be printed.`,
 		},
 		{
 			name:   "ssh -o ssh_option: BSD man indentation, entry at end of text",
-			lookup: "-o",
+			lookUp: "-o",
 			rawBlock: `     -o ssh_option
              Can be used to give options in the format used in the
              configuration file. This is useful for specifying options for
@@ -339,7 +339,7 @@ which there is no separate command-line flag.`,
 		},
 		{
 			name:   "argparse --input: nargs metavars with brackets and spaces",
-			lookup: "-i",
+			lookUp: "-i",
 			rawBlock: `  -i INPUT [INPUT ...], --input INPUT [INPUT ...]
                         input files to process
   -h, --help            show this help message and exit`,
@@ -348,7 +348,7 @@ which there is no separate command-line flag.`,
 		},
 		{
 			name:   "git --[no-]color: optional negation prefix",
-			lookup: "--[no-]color",
+			lookUp: "--[no-]color",
 			rawBlock: `       --[no-]color
                Show colored diff. The default is best effort.
 
@@ -357,14 +357,51 @@ which there is no separate command-line flag.`,
 			wantFlags: []string{"--[no-]color"},
 			wantDesc:  "Show colored diff. The default is best effort.",
 		},
+		{
+			name:      "git log --min-parents=<number> false positive",
+			lookUp:    "--min-parents=2",
+			wantFlags: []string{"--min-parents=<number>", "--max-parents=<number>", "--no-min-parents,"},
+			wantDesc: `Show only commits which have at least (or at most) that many parent
+commits. In particular, --max-parents=1 is the same as --no-merges,
+--min-parents=2 is the same as --merges.  --max-parents=0 gives all
+root commits and --min-parents=3 all octopus merges.
+
+--no-min-parents and --no-max-parents reset these limits (to no
+limit) again. Equivalent forms are --min-parents=0 (any commit has
+0 or more parents) and --max-parents=-1 (negative numbers denote no
+upper limit).`,
+			rawBlock: `
+       --merges
+           Print only merge commits. This is exactly the same as
+           --min-parents=2.
+
+       --no-merges
+           Do not print commits with more than one parent. This is exactly the
+           same as --max-parents=1.
+
+       --min-parents=<number>, --max-parents=<number>, --no-min-parents,
+       --no-max-parents
+           Show only commits which have at least (or at most) that many parent
+           commits. In particular, --max-parents=1 is the same as --no-merges,
+           --min-parents=2 is the same as --merges.  --max-parents=0 gives all
+           root commits and --min-parents=3 all octopus merges.
+
+           --no-min-parents and --no-max-parents reset these limits (to no
+           limit) again. Equivalent forms are --min-parents=0 (any commit has
+           0 or more parents) and --max-parents=-1 (negative numbers denote no
+           upper limit).
+`,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			entries := parse(tt.rawBlock)
-			wantedEntry := findEntry(entries, tt.lookup)
+			lookUp := flagName(tt.lookUp)
+			wantedEntry := findEntry(entries, lookUp)
 			if wantedEntry == nil {
-				t.Fatalf("didn't find the flag %q", tt.lookup)
+				t.Logf("raw entries: %v\n", entries)
+				t.Fatalf("didn't find the flag %q", lookUp)
 			}
 			if !slices.Equal(tt.wantFlags, wantedEntry.flags) {
 				t.Fatalf("wanted %v got %v", tt.wantFlags, wantedEntry.flags)
