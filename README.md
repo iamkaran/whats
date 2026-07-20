@@ -4,7 +4,7 @@ A CLI Utility that breaks down a command's flags
 # usage
 add a `whats` in the front of any command
 ```
-whats $ whats ls -l -a -h
+whats $ whats ls -lah
 -l    use a long listing format
 -a    do not ignore entries starting with .
 -h    with -l and -s, print sizes like 1K 234M 2G etc.
