@@ -29,6 +29,6 @@ go install github.com/iamkaran/whats@latest
 - [X] Regex pattern for matching flag lines
 - [X] Parse man page of binary from argument
 - [X] Combined flags (eg: -la)
-- [ ] Subcommand flags
-- [ ] Help output as a fallback
+- [X] Subcommand && it's flags
+- [X] Help output as a fallback
 - [ ] De-duplicate flags in arguments

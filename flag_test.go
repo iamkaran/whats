@@ -396,7 +396,7 @@ upper limit).`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			entries := parse(tt.rawBlock)
+			entries := matchedEntries([]string{tt.lookUp}, tt.rawBlock)
 			lookUp := flagName(tt.lookUp)
 			wantedEntry := findEntry(entries, lookUp)
 			if wantedEntry == nil {

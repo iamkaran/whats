@@ -1,0 +1,5 @@
+- mpv --fs finds false positives from man page, help output has the exact one
+
+- go build -o and tmux new-session -d fail because they dont have output in man page or help output but in prose
+
+- Also print the desc of just a single cmd like mv prints the "Usage: mv ..." line too
