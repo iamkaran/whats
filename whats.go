@@ -38,7 +38,7 @@ func init() {
 		if err != nil {
 			panic(err)
 		}
-		_, err = fmt.Fprintln(flag.CommandLine.Output(), "  <cmd> <subcommand> <flags>\n    	Print the explanation of command line flags")
+		_, err = fmt.Fprintln(flag.CommandLine.Output(), "  <cmd> <subcommand> <flags>\n    	Print the explanation of the command")
 		if err != nil {
 			panic(err)
 		}
