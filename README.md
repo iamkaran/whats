@@ -5,7 +5,7 @@ A simple cli utility that explains commands using man pages and help text
 add a `whats` in the front of any command
 ```
 $ whats git commit -m "foo"
-commit                       Record changes to the repository...
+commit                       Record changes to the repository..:
 -m <msg>, --message=<msg>    Use <msg> as the commit message. If multiple -m options are given,...
 
 $ whats ls -lahrt
@@ -44,10 +44,11 @@ cd whats/
 go build
 ```
 
-# roadmap
-- [X] Regex pattern for matching flag lines
-- [X] Parse man page of binary from argument
-- [X] Combined flags (eg: -la)
-- [X] Subcommand && it's flags
-- [X] Help output as a fallback
-- [ ] De-duplicate flags in arguments
+---
+<a href="https://www.star-history.com/?repos=iamkaran%2Fwhats&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=iamkaran/whats&type=date&theme=dark&legend=top-left&sealed_token=YeuiOHLARRNaxON9PX9ypCe7hXtNy0AwbULF6OgvRAz1EOMOK0EqnuDRpIQRhC_-GFAj0oMg06iLIJM_DM-tlxqi-FU6mWBVKy17lxxhhhnTsu7bOM3Ndg" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=iamkaran/whats&type=date&legend=top-left&sealed_token=YeuiOHLARRNaxON9PX9ypCe7hXtNy0AwbULF6OgvRAz1EOMOK0EqnuDRpIQRhC_-GFAj0oMg06iLIJM_DM-tlxqi-FU6mWBVKy17lxxhhhnTsu7bOM3Ndg" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=iamkaran/whats&type=date&legend=top-left&sealed_token=YeuiOHLARRNaxON9PX9ypCe7hXtNy0AwbULF6OgvRAz1EOMOK0EqnuDRpIQRhC_-GFAj0oMg06iLIJM_DM-tlxqi-FU6mWBVKy17lxxhhhnTsu7bOM3Ndg" />
+ </picture>
+</a>
