@@ -3,3 +3,7 @@
 - go build -o and tmux new-session -d fail because they dont have output in man page or help output but in prose
 
 - Also print the desc of just a single cmd like mv prints the "Usage: mv ..." line too
+
+- git pull --rebase: flag's desc starts in second line with the first being "true" so it just shows "true..." in desc
+
+- support more than one sub command's parsing (eg nmcli connection show)
