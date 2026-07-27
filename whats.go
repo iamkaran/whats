@@ -44,19 +44,23 @@ func init() {
 		}
 		flag.PrintDefaults()
 	}
-}
-
-func main() {
 	flag.Parse()
 	if flag.NArg() < 2 {
 		flag.Usage()
 		os.Exit(1)
 	}
+}
+
+func main() {
 	args := flag.Args()
+	if args[0] == "sudo" {
+		args = slices.Delete(args, 0, 1)
+	}
+	fmt.Println(args)
 
 	var result []entry
-	isSubCmd := false
 
+	isSubCmd := false
 	if !strings.HasPrefix(args[1], "-") {
 		isSubCmd = true
 	}
