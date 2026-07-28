@@ -1,6 +1,6 @@
 # whats
 A simple cli utility that explains commands using man pages and help text
-
+<img width="700" height="300" alt="demo" src="https://github.com/user-attachments/assets/6e16631e-443a-4dac-a5aa-1c0b6bb44bcc" />
 # usage
 add a `whats` in the front of any command
 ```
