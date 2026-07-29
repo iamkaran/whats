@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
-	"regexp"
 	"slices"
 	"strings"
 )
@@ -16,15 +14,7 @@ const maxLen = 80
 // flagLine matches a flag entry: indented line starting with -x or
 // --long, with
 // the description either after 2+ spaces on the same line or on following lines.
-var (
-	overStrike    = regexp.MustCompile(`.\x08`)
-	flagLine      = regexp.MustCompile(`^(\s{1,8})(-.*?)(?:\s{2,}(.*))?$`)
-	flagCluster   = regexp.MustCompile(`,\s+|\s+\|\s+`)
-	subCmdLine    = regexp.MustCompile(`^([ \t]{1,8})(\S+?)(?:\s{2,}(.*))?$`)
-	synopsisBlock = regexp.MustCompile(`(?s)SYNOPSIS\n(.*?)\n[A-Z][A-Z ]+\n`)
-
-	isDump = *flag.Bool("dump", false, "dump the entire parsed slice of entries")
-)
+var isDump = *flag.Bool("dump", false, "dump the entire parsed slice of entries")
 
 // entry is a flag and its description
 type entry struct {
@@ -56,94 +46,33 @@ func main() {
 	if args[0] == "sudo" {
 		args = slices.Delete(args, 0, 1)
 	}
-	fmt.Println(args)
 
-	var result []entry
-
-	isSubCmd := false
-	if !strings.HasPrefix(args[1], "-") {
-		isSubCmd = true
+	sources := []source{
+		&CmdManPage{},
+		&SubCmdManPage{},
 	}
 
-	c := []entry{}
-	s := []entry{}
+	result := []entry{}
 
-	if text, err := manPage(args[0]); err == nil && len(text) != 0 {
-		var m []entry
-		if isSubCmd {
-			m = matchedEntries(args[2:], text)
-		} else {
-			m = matchedEntries(args[1:], text)
+	for _, s := range sources {
+		text, err := s.fetch(args)
+		if err != nil {
+			continue
 		}
-		if len(m) > 0 {
-			c = append(c, m...)
+
+		cmdMatches := s.parseFlags(text, args)
+		for _, m := range cmdMatches {
+			if isDuplicate(result, m) {
+				continue
+			}
+			result = append(result, m)
 		}
-	}
-
-	var subManText string
-
-	if isSubCmd {
-		if text, err := manPage(args[0] + "-" + args[1]); err == nil && len(text) != 0 {
-			subManText = text
-			matches := matchedEntries(args[1:], text)
-			if len(matches) > 0 {
-				s = append(s, matches...)
+		subCmdMatches := s.parseSubcmd(text, args)
+		for _, m := range subCmdMatches {
+			if isDuplicate(result, m) {
+				continue
 			}
-
-			subEntries := parseSubCmd(text)
-			for _, sc := range subEntries {
-				if slices.Contains(sc.flags, args[1]) {
-					s = append(s, sc)
-				}
-			}
-		}
-	}
-
-	genuineSubCmd := isSubCmd && subManText != "" && hasSubcommand(subManText, args[0]+"-"+args[1])
-
-	if genuineSubCmd && len(c) > 0 {
-		result = append(result, c...)
-	} else if len(c) > len(s) {
-		result = append(result, c...)
-	} else {
-		result = append(result, s...)
-	}
-
-	if len(result) < len(args[1:]) {
-		if text, err := helpOutput(args[0], "--help"); err == nil && len(text) > 0 {
-			var r []entry
-			if isSubCmd {
-				r = matchedEntries(args[2:], text)
-			} else {
-				r = matchedEntries(args[1:], text)
-			}
-
-			if len(r) > 0 {
-				for _, e := range r {
-					if !matchesArg(e, args) {
-						continue
-					}
-
-					if containsEntry(result, e) {
-						continue
-					}
-
-					result = append(result, e)
-				}
-			}
-			if isSubCmd {
-				subEntries := parseSubCmd(text)
-
-				if len(subEntries) > 0 {
-					for _, sc := range subEntries {
-						if slices.Contains(sc.flags, args[1]) {
-							if !containsEntry(result, sc) {
-								result = append(result, sc)
-							}
-						}
-					}
-				}
-			}
+			result = append(result, m)
 		}
 	}
 
@@ -161,52 +90,13 @@ func main() {
 	}
 }
 
-func hasSubcommand(text, name string) bool {
-	m := synopsisBlock.FindStringSubmatch(text)
-	if m == nil {
-		return false
-	}
-	word := regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`)
-	return word.MatchString(m[1])
-}
-
-func entriesEqual(a, b entry) bool {
-	if a.desc != b.desc {
-		return false
-	}
-
-	if len(a.flags) != len(b.flags) {
-		return false
-	}
-
-	for i := range a.flags {
-		if a.flags[i] != b.flags[i] { // TODO: use reflect instead
-			return false
-		}
-	}
-
-	return true
-}
-
-func containsEntry(l []entry, e entry) bool {
-	for _, existing := range l {
-		if entriesEqual(existing, e) {
-			return true
-		}
-	}
-	return false
-}
-
-func matchesArg(e entry, args []string) bool {
-	for _, f := range e.flags {
-		for _, a := range args {
-			if f == a {
-				return true
-			}
-		}
-	}
-
-	return false
+// isDuplicate checks if slice A has any element of entry B's slice of Flags
+func isDuplicate(result []entry, m entry) bool {
+	return slices.ContainsFunc(result, func(r entry) bool {
+		return slices.ContainsFunc(r.flags, func(a string) bool {
+			return slices.Contains(m.flags, a)
+		})
+	})
 }
 
 // matchedEntries returns a slice of entry's that match flags in args
@@ -245,6 +135,9 @@ func parseSubCmd(text string) []entry {
 	var entries []entry
 	for i, line := range lines {
 		if m := subCmdLine.FindStringSubmatch(line); m != nil {
+			if strings.HasPrefix(m[2], "-") {
+				continue
+			}
 			description := descAfter(lines, i, m[3])
 			if description == "" {
 				description = descAfter(lines, i+1, m[3])
@@ -377,27 +270,4 @@ func getSummary(desc string) string {
 		return ln
 	}
 	return ""
-}
-
-// manPage returns manpage with formatting removed
-func manPage(page string) (string, error) {
-	c := exec.Command("man", page)
-	c.Env = append(os.Environ(), "MANWIDTH=80")
-	out, err := c.CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-	return string(overStrike.ReplaceAll(out, nil)), nil
-}
-
-// helpOutput returns the output of the --help flag or just the help as a sub command
-func helpOutput(cmd, flag string) (string, error) {
-	out, err := exec.Command(cmd, flag).CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-	if len(out) == 0 {
-		return "", fmt.Errorf("lenght of help output is zero")
-	}
-	return string(out), nil
 }
