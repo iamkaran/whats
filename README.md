@@ -16,6 +16,9 @@ $ whats ls -lahrt
 -t                      sort by time, newest first; see --time...
 ```
 
+> [!NOTE]
+> from the feedback of a great guy u/stianhoiland i am writing a rewrite of `whats` in a bash script, the execution of this idea of a command explainer is fairly simple and writing it in a single bash script makes it more easier to run, and is a much more elegant solution than writing a whole go repo
+
 # how it works
 Regex pattern matches the common format of flags in man pages and --help outputs:
 
